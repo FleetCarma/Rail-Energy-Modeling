@@ -1,0 +1,1220 @@
+﻿<Window x:Class="REMForm.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:extnd="clr-namespace:REMForm.ExtendedControls"
+        xmlns:visconverters="clr-namespace:REMForm.Converters.VisibilityConverters"
+        xmlns:boolconverters="clr-namespace:REMForm.Converters.BooleanConverters"
+        xmlns:dataconverters="clr-namespace:REMForm.Converters.DataConverters"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:wpfcharttk="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=System.Windows.Controls.DataVisualization.Toolkit"
+        xmlns:wpfchartprim="clr-namespace:System.Windows.Controls.DataVisualization.Charting.Primitives;assembly=System.Windows.Controls.DataVisualization.Toolkit"
+        xmlns:datavis="clr-namespace:System.Windows.Controls.DataVisualization;assembly=System.Windows.Controls.DataVisualization.Toolkit"
+        xmlns:options="clr-namespace:REMForm.ViewModels.Options"
+        xmlns:sys="clr-mean:System;assembly=mscorlib"
+        Title="Rail Energy Modeling Software" Height="700" Width="900" WindowStyle="SingleBorderWindow" x:Name="Window" Loaded="Window_Loaded" Closing="OnWindowClosing">
+    <Window.Resources>
+        <!-- Visibility Converters -->
+        <visconverters:DriveCycleVisibilityConverter x:Key="DriveCycleVisibilityConverter" />
+        <visconverters:VisibilityCollapsedConverter x:Key="VisibilityCollapsedConverter" />
+        <visconverters:VisibilityHiddenConverter x:Key="VisibilityHiddenConverter" />
+        <visconverters:TrainTopologyCollapsedConverter x:Key="TrainTopologyCollapsedConverter" />
+        <visconverters:AuxTypeVisibilityConverter x:Key="AuxTypeVisibilityConverter" />
+        <visconverters:SimulationResultVisibilityConverter x:Key="SimulationResultVisibilityConverter" />
+        <visconverters:UseSampleFileVisibilityConverter x:Key="UseSampleFileVisibilityConverter" />
+
+        <!-- Data Converters -->
+        <dataconverters:DriveCycleInsightConverter x:Key="DriveCycleInsightConverter" />
+
+        <!-- Boolean Converters -->
+        <boolconverters:IsTopologyConverter x:Key="IsTopologyConverter" />
+        <boolconverters:IsESSConverter x:Key="IsESSConverter" />
+
+        <!-- Global Styles (Indicated by being styles without keys-->
+        <Style TargetType="{x:Type extnd:EnumRadioButton}">
+            <Setter Property="Margin" Value="2,2,8,2"/>
+        </Style>
+
+        <Style TargetType="{x:Type DataGrid}">
+            <Setter Property="ColumnWidth" Value="*"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+            <Setter Property="Margin" Value="5,0,0,0"/>
+        </Style>
+
+        <Style TargetType="wpfcharttk:LineSeries">
+            <Setter Property="DataPointStyle">
+                <Setter.Value>
+                    <Style TargetType="wpfcharttk:LineDataPoint">
+                        <Setter Property="Background" Value="#0066ED" />
+                        <Setter Property="BorderBrush" Value="White"/>
+                        <Setter Property="BorderThickness" Value="0.5"/>
+                        <Setter Property="IsTabStop" Value="False"/>
+                        <Setter Property="Margin" Value="1"/>
+                        <Setter Property="Padding" Value="1"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="wpfcharttk:LineDataPoint">
+                                    <Grid x:Name="Root" Opacity="0"/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="datavis:Legend" x:Key="LegendTemplate">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type datavis:Legend}">
+                        <Border BorderBrush="Transparent" 
+                                BorderThickness="0" 
+                                Background="Transparent" 
+                                >
+                            <WrapPanel Grid.Row="1"
+                                       Orientation="Horizontal" >
+                                <ItemsPresenter x:Name="Items" Margin="0,10">
+                                </ItemsPresenter>
+                            </WrapPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemsPanel">
+                <Setter.Value>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" >
+                            <StackPanel.Resources>
+                                <Style TargetType="{x:Type wpfcharttk:LegendItem}">
+                                    <Setter Property="Margin" Value="0,5"/>
+                                    <Setter Property="Padding" Value="0,5"/>
+                                </Style>
+                            </StackPanel.Resources>
+                        </StackPanel>
+                    </ItemsPanelTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="wpfcharttk:LineSeries" x:Key="SecondarySeries">
+            <Setter Property="DataPointStyle">
+                <Setter.Value>
+                    <Style TargetType="wpfcharttk:LineDataPoint">
+                        <Setter Property="Background" Value="#AF0000" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="wpfcharttk:LineDataPoint">
+                                    <Grid x:Name="Root" Opacity="0"/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="wpfcharttk:LineSeries" x:Key="TertiarySeries" BasedOn="{StaticResource SecondarySeries}">
+            <Setter Property="DataPointStyle">
+                <Setter.Value>
+                    <Style TargetType="wpfcharttk:LineDataPoint">
+                        <Setter Property="Background" Value="#00AF00" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="wpfcharttk:LineDataPoint">
+                                    <Grid x:Name="Root" Opacity="0"/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="wpfcharttk:LineSeries" x:Key="FourthSeries" BasedOn="{StaticResource SecondarySeries}">
+            <Setter Property="DataPointStyle">
+                <Setter.Value>
+                    <Style TargetType="wpfcharttk:LineDataPoint">
+                        <Setter Property="Background" Value="#de00eb" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="wpfcharttk:LineDataPoint">
+                                    <Grid x:Name="Root" Opacity="0"/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="wpfcharttk:Chart" x:Key="BasicChart">
+            <Setter Property="LegendStyle" >
+                <Setter.Value>
+                    <Style TargetType="datavis:Legend">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Padding" Value="0,10"/>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="PlotAreaStyle">
+                <Setter.Value>
+                    <Style TargetType="Grid">
+                        <Setter Property="Background" Value="Transparent" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="TitleStyle">
+                <Setter.Value>
+                    <Style TargetType="datavis:Title">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Setter Property="Margin" Value="0"/>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Palette">
+                <Setter.Value>
+                    <datavis:ResourceDictionaryCollection>
+                    </datavis:ResourceDictionaryCollection>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="wpfcharttk:Chart">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid Margin="0" Grid.Row="0">
+                                    <wpfchartprim:EdgePanel x:Name="ChartArea" Style="{TemplateBinding ChartAreaStyle}">
+                                        <Grid Style="{TemplateBinding PlotAreaStyle}" Panel.ZIndex="-1"/>
+                                        <Border BorderBrush="#FF919191" BorderThickness="1" Panel.ZIndex="10"/>
+                                    </wpfchartprim:EdgePanel>
+                                </Grid>
+                                <datavis:Legend x:Name="Legend" Style="{TemplateBinding LegendStyle}" Grid.Row="1" Title="{TemplateBinding LegendTitle}">
+                                </datavis:Legend>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style TargetType="wpfcharttk:Chart" x:Key="NoLegend" BasedOn="{StaticResource BasicChart}">
+            <Setter Property="LegendStyle">
+                <Setter.Value>
+                    <Style TargetType="datavis:Legend">
+                        <Setter Property="Width" Value="0"/>
+                        <Setter Property="Height" Value="0"/>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="wpfcharttk:LegendItem" x:Key="HideLegendItem">
+            <Setter Property="Visibility" Value="Collapsed">
+            </Setter>
+        </Style>
+
+        <!-- Keyed Styles -->
+        <Style x:Key="StandardBorder" TargetType="Border">
+            <Setter Property="BorderBrush" Value="#76000000"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="Padding" Value="5"/>
+        </Style>
+        <Style x:Key="SeparatorBorder" TargetType="Border">
+            <Setter Property="BorderThickness" Value="1,0,0,0"/>
+            <Setter Property="BorderBrush" Value="#76000000"/>
+            <Setter Property="Padding" Value="3,0,0,0"/>
+        </Style>
+        <Style x:Key="ParameterOptionRadioPanel" TargetType="StackPanel">
+            <Setter Property="Width" Value="250"/>
+        </Style>
+        <Style x:Key="VehicleDefaultParameterPanel" TargetType="StackPanel">
+            <Setter Property="Width" Value="150"/>
+        </Style>
+        <Style x:Key="PowertrainDefaultParameterPanel" TargetType="StackPanel">
+            <Setter Property="Width" Value="150"/>
+        </Style>
+        <Style x:Key="SmallButton" TargetType="Button">
+            <Setter Property="Width" Value="100"/>
+        </Style>
+        <Style x:Key="CustomParameterContainer" TargetType="{x:Type FrameworkElement}">
+            <Setter Property="Width" Value="300"/>
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type ToggleButton}}" x:Key="ToggleButtonRadioEnum" TargetType="extnd:EnumRadioButton">
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <Menu Background="White" DockPanel.Dock="Top">
+            <MenuItem Header="Unit System">
+                <MenuItem Name="MetricMenuItem" Header="Metric System" IsCheckable="True" IsChecked="True" Checked="MetricMenuItem_Checked" Unchecked="MetricMenuItem_Unchecked"/>
+                <MenuItem Name="ImperialMenuItem" Header="US Imperial System" IsCheckable="True" IsChecked="False" Checked="ImperialMenuItem_Checked" Unchecked="ImperialMenuItem_Unchecked"/>
+            </MenuItem>
+        </Menu>
+        <TabControl Background="White" SelectionChanged="TabControl_SelectionChanged">
+            <TabItem DataContext="{Binding ParamConfigModel}">
+                <TabItem.Header>
+                    Parameters
+                </TabItem.Header>
+                <TabItem.Content>
+                    <ScrollViewer HorizontalAlignment="Stretch" Name="ParameterViewer" VerticalAlignment="Top" Grid.Row="0" Height="Auto">
+                        <StackPanel>
+
+                            <Border Style="{StaticResource StandardBorder}" DataContext="{Binding Path=VehicleOption}" Visibility="Visible">
+                                <StackPanel>
+                                    <Label FontSize="20">Vehicle Specifications</Label>
+                                    <StackPanel Orientation="Horizontal" >
+
+                                        <Border>
+                                            <StackPanel Style="{StaticResource VehicleDefaultParameterPanel}" Orientation="Vertical">
+                                                <Label FontSize="16">Default Parameters</Label>
+                                                <StackPanel HorizontalAlignment="Left" >
+                                                    <Button Margin="5" Style="{StaticResource SmallButton}" Name="VehicleDefaultPassengerButton" Click="VehicleDefaultPassengerButton_Click">Passenger</Button>
+                                                    <Button Margin="5" Style="{StaticResource SmallButton}" Name="VehicleDefaultFreightButton" Click="VehicleDefaultFreightButton_Click">Freight</Button>
+                                                    <Button Margin="5" Style="{StaticResource SmallButton}" Name="VehicleDefaultSwitchButton" Click="VehicleDefaultSwitchButton_Click">Switch</Button>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource SeparatorBorder}">
+                                            <Grid Style="{StaticResource CustomParameterContainer}">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="2*"/>
+                                                    <ColumnDefinition/>
+                                                </Grid.ColumnDefinitions>
+                                                <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" FontSize="16">Parameters</Label>
+                                                <Label Name="L_Param_LocoMass" Grid.Column="0" Grid.Row="1" 
+                                                   Content="{Binding Path=DataContext.UnitSystem.Mass.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                   ContentStringFormat="Locomotive Mass ({0})"></Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="1" Value="{Binding Parameters.LocomotiveMass}" Minimum="{Binding Parameters.Min_LocomotiveMass}" Maximum="{Binding Parameters.Max_LocomotiveMass}" Increment="1000"/>
+
+                                                <Label Name="L_Param_NumCars" Grid.Column="0" Grid.Row="2">Number of cars</Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="2" Value="{Binding Parameters.NumCars}" Minimum="{Binding Parameters.Min_NumCars}" Maximum="{Binding Parameters.Max_NumCars}" Increment="1">
+
+                                                </xctk:DoubleUpDown>
+
+                                                <Label Name="L_Param_CarMass" Grid.Column="0" Grid.Row="3" 
+                                                Content="{Binding Path=DataContext.UnitSystem.Mass.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                ContentStringFormat="Mass of each car ({0})"></Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="3" Value="{Binding Parameters.CarMass}" Minimum="{Binding Parameters.Min_CarMass}" Maximum="{Binding Parameters.Max_CarMass}" Increment="1000"/>
+
+                                                <Label Name="L_Param_MaxSpeed" Grid.Column="0" Grid.Row="4" 
+                                                Content="{Binding Path=DataContext.UnitSystem.Speed.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                ContentStringFormat="Maximum Vehicle Speed ({0})"></Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="4" Value="{Binding Parameters.MaxSpeed}" Minimum="{Binding Parameters.Min_MaxSpeed}" Maximum="{Binding Parameters.Max_MaxSpeed}" Increment="5"/>
+
+                                                <Label Name="L_Param_FrontalArea" Grid.Column="0" Grid.Row="5" 
+                                                Content="{Binding Path=DataContext.UnitSystem.Area.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                ContentStringFormat="Frontal Area ({0})"></Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="5" Value="{Binding Parameters.FrontalArea}" Minimum="{Binding Parameters.Min_FrontalArea}" Maximum="{Binding Parameters.Max_FrontalArea}" FormatString="F2" Increment="0.1"/>
+
+                                                <Label Name="L_Param_WheelRadius" Grid.Column="0" Grid.Row="6" 
+                                                Content="{Binding Path=DataContext.UnitSystem.ShortDistance.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                ContentStringFormat="Wheel Radius ({0})"></Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="6" Value="{Binding Parameters.WheelRadius}" Minimum="{Binding Parameters.Min_WheelRadius}" Maximum="{Binding Parameters.Max_WheelRadius}" FormatString="F4" Increment="0.01"/>
+
+                                                <Label Name="L_Param_DragCoeff" Grid.Column="0" Grid.Row="7">Drag Coefficient</Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="7" Value="{Binding Parameters.DragCoefficient}" Minimum="{Binding Parameters.Min_DragCoefficient}" Maximum="{Binding Parameters.Max_DragCoefficient}" FormatString="F4" Increment="0.01"/>
+
+                                                <Label Name="L_Param_RollingCoeff1" Grid.Column="0" Grid.Row="8">Rolling Resistance Coefficient 1</Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="8" Value="{Binding Parameters.RollingResistance1}" Minimum="{Binding Parameters.Min_RollingResistance1}" Maximum="{Binding Parameters.Max_RollingResistance1}" FormatString="F6" Increment="0.000001"/>
+
+                                                <Label Name="L_Param_RollingCoeff2" Grid.Column="0" Grid.Row="9">Rolling Resistance Coefficient 2</Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="9" Value="{Binding Parameters.RollingResistance2}" Minimum="{Binding Parameters.Min_RollingResistance2}" Maximum="{Binding Parameters.Max_RollingResistance2}" FormatString="F6" Increment="0.000001"/>
+
+                                                <Label Name="L_Param_FinalDriveRatio" Grid.Column="0" Grid.Row="10">Final Drive Gear Ratio</Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="10" Value="{Binding Parameters.GearRatio}" Minimum="{Binding Parameters.Min_GearRatio}" Maximum="{Binding Parameters.Max_GearRatio}" FormatString="F2" Increment="0.1"/>
+
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <Border DataContext="{Binding Path=TrainOption}" Style="{StaticResource StandardBorder}">
+                                <StackPanel>
+                                    <Label FontSize="20">Powertrain Type</Label>
+                                    <StackPanel Orientation="Horizontal">
+                                        <StackPanel Margin="5,0,10,5">
+                                            <Label FontSize="16">Prime Mover</Label>
+
+                                            <StackPanel Margin="5,0,0,0">
+                                                <extnd:EnumRadioButton  EnumBinding="{Binding Topology}" EnumValue="EngineElectric" >Engine Electric</extnd:EnumRadioButton>
+                                                <extnd:EnumRadioButton EnumBinding="{Binding Topology}" EnumValue="Electric">Electric</extnd:EnumRadioButton>
+                                                <extnd:EnumRadioButton EnumBinding="{Binding Topology}" EnumValue="EngineHybrid">Engine Hybrid</extnd:EnumRadioButton>
+                                                <extnd:EnumRadioButton EnumBinding="{Binding Topology}" EnumValue="FuelCell">Fuel Cell</extnd:EnumRadioButton>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <Border Style="{StaticResource SeparatorBorder}" Padding="5,0,5,5">
+                                            <Border.Visibility>
+                                                <Binding Path="Topology" Converter="{StaticResource TrainTopologyCollapsedConverter}">
+                                                    <Binding.ConverterParameter>
+                                                        <x:Array Type="options:TrainTopology">
+                                                            <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                            <options:TrainTopology>FuelCell</options:TrainTopology>
+                                                        </x:Array>
+                                                    </Binding.ConverterParameter>
+                                                </Binding>
+                                            </Border.Visibility>
+                                            <StackPanel>
+                                                <Label FontSize="16">Energy Storage System</Label>
+                                                <StackPanel Margin="5,0,0,0">
+                                                    <extnd:EnumRadioButton EnumBinding="{Binding StorageSystem}" EnumValue="Battery">Battery</extnd:EnumRadioButton>
+                                                    <extnd:EnumRadioButton EnumBinding="{Binding StorageSystem}" EnumValue="Flywheel">Flywheel</extnd:EnumRadioButton>
+                                                    <extnd:EnumRadioButton EnumBinding="{Binding StorageSystem}" EnumValue="Ultracapacitive">Ultracapacitor</extnd:EnumRadioButton>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource SeparatorBorder}" Padding="5,0,5,5">
+                                            <Border.Visibility>
+                                                <Binding Path="Topology" Converter="{StaticResource TrainTopologyCollapsedConverter}">
+                                                    <Binding.ConverterParameter>
+                                                        <x:Array Type="options:TrainTopology">
+                                                            <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                            <options:TrainTopology>EngineElectric</options:TrainTopology>
+                                                        </x:Array>
+                                                    </Binding.ConverterParameter>
+                                                </Binding>
+                                            </Border.Visibility>
+                                            <StackPanel>
+                                                <Label FontSize="16">Engine Fuel Type:</Label>
+                                                <StackPanel Margin="5,0,0,0">
+                                                    <extnd:EnumRadioButton EnumBinding="{Binding Path=DataContext.FuelType, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" EnumValue="Diesel">Diesel</extnd:EnumRadioButton>
+                                                    <extnd:EnumRadioButton EnumBinding="{Binding Path=DataContext.FuelType, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" EnumValue="Gas">Gasoline</extnd:EnumRadioButton>
+                                                    <extnd:EnumRadioButton EnumBinding="{Binding Path=DataContext.FuelType, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" EnumValue="CNG">Compressed Natural Gas (CNG)</extnd:EnumRadioButton>
+                                                    <extnd:EnumRadioButton EnumBinding="{Binding Path=DataContext.FuelType, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" EnumValue="LNG">Liquefied Natural Gas (LNG)</extnd:EnumRadioButton>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StandardBorder}" DataContext="{Binding Path=PowertrainOption}" Visibility="Visible">
+                                <StackPanel>
+                                    <Label FontSize="20">Powertrain Specifications</Label>
+                                    <StackPanel Orientation="Horizontal">
+                                        <StackPanel Width="300" Margin="5,0,10,5">
+                                            <Label FontSize="16">Parameters</Label>
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="2*"/>
+                                                    <ColumnDefinition/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Label Name="L_Param_EnginePower" Grid.Column="0" Grid.Row="0" 
+                                                Content="{Binding Path=DataContext.UnitSystem.MechanicalPower.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                ContentStringFormat="Engine Power ({0})"></Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="0" Value="{Binding EnginePower}" Minimum="{Binding Min_EnginePower}" Maximum="{Binding Max_EnginePower}" FormatString="F1" Increment="100">
+                                                    <xctk:DoubleUpDown.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineElectric</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </xctk:DoubleUpDown.IsEnabled>
+                                                </xctk:DoubleUpDown>
+
+                                                <Label Name="L_Param_EngineEfficiency" Grid.Column="0" Grid.Row="1">Peak Engine Efficiency</Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="1" Value="{Binding MeanEngineEfficiency}" Minimum="{Binding Min_MeanEngineEfficiency}" Maximum="{Binding Max_MeanEngineEfficiency}" FormatString="F2" Increment="0.1">
+                                                    <xctk:DoubleUpDown.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineElectric</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </xctk:DoubleUpDown.IsEnabled>
+                                                </xctk:DoubleUpDown>
+
+                                                <Label Name="L_Param_GeneratorEfficiency" Grid.Column="0" Grid.Row="2" >Peak Generator Efficiency</Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="2" Value="{Binding GeneratorEfficiency}" Minimum="{Binding Min_GeneratorEfficiency}" Maximum="{Binding Max_GeneratorEfficiency}" FormatString="F2" Increment="0.1">
+                                                    <xctk:DoubleUpDown.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineElectric</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </xctk:DoubleUpDown.IsEnabled>
+                                                </xctk:DoubleUpDown>
+
+                                                <Label Name="L_Param_FuelCellPower" Grid.Column="0" Grid.Row="3" 
+                                                Content="{Binding Path=DataContext.UnitSystem.Power.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                ContentStringFormat="Fuel Cell Power ({0})"></Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="3" Value="{Binding FuelCellPower}" Minimum="{Binding Min_FuelCellPower}" Maximum="{Binding Max_FuelCellPower}" FormatString="F1" Increment="100">
+                                                    <xctk:DoubleUpDown.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>FuelCell</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </xctk:DoubleUpDown.IsEnabled>
+                                                </xctk:DoubleUpDown>
+
+                                                <Label Name="L_Param_MeanFuelCellEfficiency" Grid.Column="0" Grid.Row="4" >Peak Fuel Cell Efficiency</Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="4" Value="{Binding MeanFuelCellEfficiency}" Minimum="{Binding Min_MeanFuelCellEfficiency}" Maximum="{Binding Max_MeanFuelCellEfficiency}" FormatString="F2" Increment="0.1">
+                                                    <xctk:DoubleUpDown.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>FuelCell</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </xctk:DoubleUpDown.IsEnabled>
+                                                </xctk:DoubleUpDown>
+
+                                                <Label Name="L_Param_MotorPower" Grid.Column="0" Grid.Row="5" 
+                                                Content="{Binding Path=DataContext.UnitSystem.Power.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                ContentStringFormat="Motor Power ({0})"></Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="5" Value="{Binding MotorPower}" Minimum="{Binding Min_MotorPower}" Maximum="{Binding Max_MotorPower}" FormatString="F1" Increment="100">
+                                                    <xctk:DoubleUpDown.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>Electric</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </xctk:DoubleUpDown.IsEnabled>
+                                                </xctk:DoubleUpDown>
+
+                                                <Label Name="L_Param_MotorEfficiency" Grid.Column="0" Grid.Row="6" >Peak Motor Efficiency</Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="6" Value="{Binding MotorEfficiency}" Minimum="{Binding Min_MotorEfficiency}" Maximum="{Binding Max_MotorEfficiency}" FormatString="F2" Increment="0.01"/>
+
+                                                <Label Name="L_Param_FinalDriveEfficiency" Grid.Column="0" Grid.Row="7" >Final Drive Efficiency</Label>
+                                                <xctk:DoubleUpDown Grid.Column="1" Grid.Row="7" Value="{Binding FinalDriveEfficiency}" Minimum="{Binding Min_FinalDriveEfficiency}" Maximum="{Binding Max_FinalDriveEfficiency}" FormatString="F2" Increment="0.01"/>
+
+                                            </Grid>
+                                        </StackPanel>
+                                        <Border Width="300" Style="{StaticResource SeparatorBorder}" Grid.Column="1" Padding="5,0,5,5">
+                                            <Border.Visibility>
+                                                <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource TrainTopologyCollapsedConverter}">
+                                                    <Binding.ConverterParameter>
+                                                        <x:Array Type="options:TrainTopology">
+                                                            <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                            <options:TrainTopology>FuelCell</options:TrainTopology>
+                                                        </x:Array>
+                                                    </Binding.ConverterParameter>
+                                                </Binding>
+                                            </Border.Visibility>
+                                            <StackPanel>
+                                                <Label FontSize="16">Energy Storage System Parameters</Label>
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition/>
+                                                        <RowDefinition/>
+                                                        <RowDefinition/>
+                                                        <RowDefinition/>
+                                                        <RowDefinition/>
+                                                        <RowDefinition/>
+                                                        <RowDefinition/>
+                                                        <RowDefinition/>
+                                                    </Grid.RowDefinitions>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="2*"/>
+                                                        <ColumnDefinition/>
+                                                    </Grid.ColumnDefinitions>
+
+
+                                                    <Label Name="L_Param_BatteryPower" Grid.Column="0" Grid.Row="0" 
+                                                Content="{Binding Path=DataContext.UnitSystem.Power.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                ContentStringFormat="Battery Power ({0})"></Label>
+                                                    <xctk:DoubleUpDown Grid.Column="1" Grid.Row="0" Value="{Binding BatteryPower}" Minimum="{Binding Min_BatteryPower}" Maximum="{Binding Max_BatteryPower}"  FormatString="F1" Increment="100">
+                                                        <xctk:DoubleUpDown.IsEnabled>
+                                                            <Binding Path="DataContext.ParamConfigModel.TrainOption.StorageSystem"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsESSConverter}">
+                                                                <Binding.ConverterParameter>
+                                                                    <x:Array Type="options:EnergyStorageSystem">
+                                                                        <options:EnergyStorageSystem>Battery</options:EnergyStorageSystem>
+                                                                    </x:Array>
+                                                                </Binding.ConverterParameter>
+                                                            </Binding>
+                                                        </xctk:DoubleUpDown.IsEnabled>
+                                                    </xctk:DoubleUpDown>
+
+                                                    <Label Name="L_Param_BatteryEnergy" Grid.Column="0" Grid.Row="1" 
+                                                Content="{Binding Path=DataContext.UnitSystem.Energy.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                ContentStringFormat="Battery Energy ({0})"></Label>
+                                                    <xctk:DoubleUpDown Grid.Column="1" Grid.Row="1" Value="{Binding BatteryEnergy}" Minimum="{Binding Min_BatteryEnergy}" Maximum="{Binding Max_BatteryEnergy}"  FormatString="F1" Increment="10">
+                                                        <xctk:DoubleUpDown.IsEnabled>
+                                                            <Binding Path="DataContext.ParamConfigModel.TrainOption.StorageSystem"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsESSConverter}">
+                                                                <Binding.ConverterParameter>
+                                                                    <x:Array Type="options:EnergyStorageSystem">
+                                                                        <options:EnergyStorageSystem>Battery</options:EnergyStorageSystem>
+                                                                    </x:Array>
+                                                                </Binding.ConverterParameter>
+                                                            </Binding>
+                                                        </xctk:DoubleUpDown.IsEnabled>
+                                                    </xctk:DoubleUpDown>
+
+                                                    <Label Name="L_Param_FlywheelPower" Grid.Column="0" Grid.Row="2" 
+                                                Content="{Binding Path=DataContext.UnitSystem.Power.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                ContentStringFormat="Flywheel Power ({0})"></Label>
+                                                    <xctk:DoubleUpDown Grid.Column="1" Grid.Row="2" Value="{Binding FlywheelPower}" Minimum="{Binding Min_FlywheelPower}" Maximum="{Binding Max_FlywheelPower}"  FormatString="F1" Increment="100">
+                                                        <xctk:DoubleUpDown.IsEnabled>
+                                                            <Binding Path="DataContext.ParamConfigModel.TrainOption.StorageSystem"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsESSConverter}">
+                                                                <Binding.ConverterParameter>
+                                                                    <x:Array Type="options:EnergyStorageSystem">
+                                                                        <options:EnergyStorageSystem>Flywheel</options:EnergyStorageSystem>
+                                                                    </x:Array>
+                                                                </Binding.ConverterParameter>
+                                                            </Binding>
+                                                        </xctk:DoubleUpDown.IsEnabled>
+                                                    </xctk:DoubleUpDown>
+
+                                                    <Label Name="L_Param_FlywheelEnergy" Grid.Column="0" Grid.Row="3">Flywheel Energy (MJ)</Label>
+                                                    <xctk:DoubleUpDown Grid.Column="1" Grid.Row="3" Value="{Binding FlywheelEnergy}" Minimum="{Binding Min_FlywheelEnergy}" Maximum="{Binding Max_FlywheelEnergy}"  FormatString="F1" Increment="100">
+                                                        <xctk:DoubleUpDown.IsEnabled>
+                                                            <Binding Path="DataContext.ParamConfigModel.TrainOption.StorageSystem"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsESSConverter}">
+                                                                <Binding.ConverterParameter>
+                                                                    <x:Array Type="options:EnergyStorageSystem">
+                                                                        <options:EnergyStorageSystem>Flywheel</options:EnergyStorageSystem>
+                                                                    </x:Array>
+                                                                </Binding.ConverterParameter>
+                                                            </Binding>
+                                                        </xctk:DoubleUpDown.IsEnabled>
+                                                    </xctk:DoubleUpDown>
+
+                                                    <Label Name="L_Param_UltracapPower" Grid.Column="0" Grid.Row="4" 
+                                                Content="{Binding Path=DataContext.UnitSystem.Power.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                ContentStringFormat="Ultracapacitor Power ({0})"></Label>
+                                                    <xctk:DoubleUpDown Grid.Column="1" Grid.Row="4" Value="{Binding UltracapPower}" Minimum="{Binding Min_UltracapPower}" Maximum="{Binding Max_UltracapPower}"  FormatString="F1" Increment="100">
+                                                        <xctk:DoubleUpDown.IsEnabled>
+                                                            <Binding Path="DataContext.ParamConfigModel.TrainOption.StorageSystem"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsESSConverter}">
+                                                                <Binding.ConverterParameter>
+                                                                    <x:Array Type="options:EnergyStorageSystem">
+                                                                        <options:EnergyStorageSystem>Ultracapacitive</options:EnergyStorageSystem>
+                                                                    </x:Array>
+                                                                </Binding.ConverterParameter>
+                                                            </Binding>
+                                                        </xctk:DoubleUpDown.IsEnabled>
+                                                    </xctk:DoubleUpDown>
+
+                                                    <Label Name="L_Param_UltracapCapacitance" Grid.Column="0" Grid.Row="5">Ultracapacitor Capacitance (F)</Label>
+                                                    <xctk:DoubleUpDown Grid.Column="1" Grid.Row="5" Value="{Binding UltracapCapacitance}" Minimum="{Binding Min_UltracapCapacitance}" Maximum="{Binding Max_UltracapCapacitance}"  FormatString="F1" Increment="1000">
+                                                        <xctk:DoubleUpDown.IsEnabled>
+                                                            <Binding Path="DataContext.ParamConfigModel.TrainOption.StorageSystem"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsESSConverter}">
+                                                                <Binding.ConverterParameter>
+                                                                    <x:Array Type="options:EnergyStorageSystem">
+                                                                        <options:EnergyStorageSystem>Ultracapacitive</options:EnergyStorageSystem>
+                                                                    </x:Array>
+                                                                </Binding.ConverterParameter>
+                                                            </Binding>
+                                                        </xctk:DoubleUpDown.IsEnabled>
+                                                    </xctk:DoubleUpDown>
+
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StandardBorder}" DataContext="{Binding Path=AuxEngineOption}">
+                                <StackPanel>
+                                    <Label FontSize="20">Auxiliary Operation</Label>
+                                    <StackPanel>
+                                        <Label FontSize="16">Accessory Loads During Engine Operation</Label>
+                                        <StackPanel Margin="0,5">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Label Margin="5,0,0,0">Mechanical Accessories (kW)</Label>
+                                                <xctk:DoubleUpDown Width="100" Value="{Binding MechanicalAccessories}" Minimum="{Binding Min_MechanicalAccessories}" Maximum="{Binding Max_MechanicalAccessories}" FormatString="F3" Increment="0.1">
+                                                    <xctk:DoubleUpDown.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>EngineElectric</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </xctk:DoubleUpDown.IsEnabled>
+                                                </xctk:DoubleUpDown>
+                                                <Border Margin="10,0,0,0" Style="{StaticResource SeparatorBorder}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Label>Electrical Accessories (kW)</Label>
+                                                        <xctk:DoubleUpDown Width="100" Value="{Binding ElectricalAccessories}" Minimum="{Binding Min_ElectricalAccessories}" Maximum="{Binding Max_ElectricalAccessories}" FormatString="F3" Increment="0.1">
+
+                                                        </xctk:DoubleUpDown>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <Label FontSize="16">Diesel Auxiliary Systems</Label>
+                                        <StackPanel Orientation="Horizontal">
+                                            <StackPanel Margin="7,5,5,5">
+                                                <extnd:EnumRadioButton EnumBinding="{Binding Type}" EnumValue="HEP">Separate HEP System
+                                                    <extnd:EnumRadioButton.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>FuelCell</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineElectric</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </extnd:EnumRadioButton.IsEnabled>
+                                                </extnd:EnumRadioButton>
+                                                <extnd:EnumRadioButton EnumBinding="{Binding Type}" EnumValue="APU">APU
+                                                    <extnd:EnumRadioButton.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>FuelCell</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineElectric</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </extnd:EnumRadioButton.IsEnabled>
+                                                </extnd:EnumRadioButton>
+                                                <extnd:EnumRadioButton EnumBinding="{Binding Type}" EnumValue="None">None
+                                                    <extnd:EnumRadioButton.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>FuelCell</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineElectric</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </extnd:EnumRadioButton.IsEnabled>
+                                                </extnd:EnumRadioButton>
+                                            </StackPanel>
+                                            <Grid Margin="5">
+                                                <Grid.Visibility>
+                                                    <Binding Path="Type" Converter="{StaticResource AuxTypeVisibilityConverter}">
+                                                        <Binding.ConverterParameter>
+                                                            <x:Array Type="options:AuxEngineType">
+                                                                <options:AuxEngineType>HEP</options:AuxEngineType>
+                                                                <options:AuxEngineType>APU</options:AuxEngineType>
+                                                            </x:Array>
+                                                        </Binding.ConverterParameter>
+                                                    </Binding>
+                                                </Grid.Visibility>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition/>
+                                                    <RowDefinition/>
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition/>
+                                                    <ColumnDefinition/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Label Grid.Row="0" Grid.Column="0">Load (kW)</Label>
+                                                <xctk:DoubleUpDown Grid.Row="0" Grid.Column="1" Width="100" Value="{Binding Load}" Minimum="{Binding Min_Load}" Maximum="{Binding Max_Load}" FormatString="F1" Increment="10">
+                                                    <xctk:DoubleUpDown.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>FuelCell</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineElectric</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </xctk:DoubleUpDown.IsEnabled>
+                                                </xctk:DoubleUpDown>
+
+                                                <Label Grid.Row="1" Grid.Column="0">Efficiency</Label>
+                                                <xctk:DoubleUpDown Grid.Row="1" Grid.Column="1"  Width="100" Value="{Binding Efficiency}" Minimum="{Binding Min_Efficiency}" Maximum="{Binding Max_Efficiency}" FormatString="F2" Increment="0.01">
+                                                    <xctk:DoubleUpDown.IsEnabled>
+                                                        <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                            <Binding.ConverterParameter>
+                                                                <x:Array Type="options:TrainTopology">
+                                                                    <options:TrainTopology>FuelCell</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineElectric</options:TrainTopology>
+                                                                    <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                                </x:Array>
+                                                            </Binding.ConverterParameter>
+                                                        </Binding>
+                                                    </xctk:DoubleUpDown.IsEnabled>
+                                                </xctk:DoubleUpDown>
+                                            </Grid>
+                                        </StackPanel>
+                                        <CheckBox IsChecked="{Binding AESS}" Margin="10,5,5,5">AESS (Automatic Engine Start/Stop)
+                                            <CheckBox.IsEnabled>
+                                                <Binding Path="DataContext.ParamConfigModel.TrainOption.Topology"
+                                                                 RelativeSource="{RelativeSource AncestorType={x:Type Window}}"
+                                                                 Converter="{StaticResource IsTopologyConverter}">
+                                                    <Binding.ConverterParameter>
+                                                        <x:Array Type="options:TrainTopology">
+                                                            <options:TrainTopology>FuelCell</options:TrainTopology>
+                                                            <options:TrainTopology>EngineElectric</options:TrainTopology>
+                                                            <options:TrainTopology>EngineHybrid</options:TrainTopology>
+                                                        </x:Array>
+                                                    </Binding.ConverterParameter>
+                                                </Binding>
+                                            </CheckBox.IsEnabled>
+                                            <CheckBox.Visibility>
+                                                <Binding Path="Type" Converter="{StaticResource AuxTypeVisibilityConverter}">
+                                                    <Binding.ConverterParameter>
+                                                        <x:Array Type="options:AuxEngineType">
+                                                            <options:AuxEngineType>HEP</options:AuxEngineType>
+                                                            <options:AuxEngineType>APU</options:AuxEngineType>
+                                                        </x:Array>
+                                                    </Binding.ConverterParameter>
+                                                </Binding>
+                                            </CheckBox.Visibility>
+                                        </CheckBox>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem.Content>
+            </TabItem>
+            <TabItem DataContext="{Binding DriveCycleModel}" Name="DriveCycleTab">
+                <TabItem.Header>
+                    Drive Cycle
+                </TabItem.Header>
+                <TabItem.Content>
+                    <DockPanel Name="DriveCycleContents">
+                        <Border Style="{StaticResource StandardBorder}" DockPanel.Dock="Top">
+                            <DockPanel>
+                                <Label DockPanel.Dock="Top" FontSize="20">Drive Cycle</Label>
+                                <CheckBox Margin="8,3" DockPanel.Dock="Left" Content="Use sample file" IsChecked="{Binding UseSampleCycleFile}"/>
+                                <TextBox DockPanel.Dock="Left" Visibility="{Binding UseSampleCycleFile, Converter={StaticResource UseSampleFileVisibilityConverter}}" Text="{Binding DriveCyclePath}" IsReadOnly="True" MaxWidth="350" HorizontalAlignment="Left" MinWidth="350"></TextBox>
+                                <Button DockPanel.Dock="Left" Visibility="{Binding UseSampleCycleFile, Converter={StaticResource UseSampleFileVisibilityConverter}}" Content="Browse..." Click="CycleBrowse_Click" HorizontalAlignment="Left" Padding="3,1" Name="CycleBrowse"></Button>
+                                <Button DockPanel.Dock="Left" Margin="8,0" HorizontalAlignment="Left" Name="LoadCycleFile" Content="Load Drive Cycle" Click="LoadCycleFile_Click" />
+                            </DockPanel>
+                        </Border>
+                        <Border Visibility="{Binding DriveCycles, Converter={StaticResource DriveCycleVisibilityConverter}}" Style="{StaticResource StandardBorder}" >
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="40" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="20" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="270"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal">
+                                    <Label FontSize="20">Cycle Data</Label>
+                                    <StackPanel Margin="5" Orientation="Horizontal" VerticalAlignment="Center"
+                                                Visibility="{Binding GraphNeedsUpdate, Converter={StaticResource VisibilityCollapsedConverter}}">
+                                        <Label Foreground="Red" Padding="10,5,5,5">
+                                            <TextBlock TextWrapping="WrapWithOverflow" TextAlignment="Center">
+                                            Some changes have been made since the graphs were last generated
+                                            </TextBlock>
+                                        </Label>
+                                        <Button Click="Reload_Graphs" Padding="7,0,7,0" Content="Reload">
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                                <Grid Grid.Column="0" Grid.Row="1">
+                                    <Image Grid.Row="0" Name="CycleChartImage"/>
+                                    <wpfcharttk:Chart Style="{StaticResource NoLegend}" Grid.Row="0" Name="CycleSpeedChart" Visibility="Hidden">
+                                        <wpfcharttk:LineSeries Name="CycleSpeedChart_Line0"
+                                                                ItemsSource="{Binding}"
+                                                                IndependentValuePath="Key"
+                                                                DependentValuePath="Value">
+                                            <wpfcharttk:LineSeries.DependentRangeAxis>
+                                                <wpfcharttk:LinearAxis Orientation="Y" ShowGridLines="True" Name="CycleSpeedChart_DependantAxis0" Minimum="0">
+                                                </wpfcharttk:LinearAxis>
+                                            </wpfcharttk:LineSeries.DependentRangeAxis>
+                                            <wpfcharttk:LineSeries.IndependentAxis>
+                                                <wpfcharttk:LinearAxis Orientation="X" Minimum="0" Title="Time (s)"/>
+                                            </wpfcharttk:LineSeries.IndependentAxis>
+                                        </wpfcharttk:LineSeries>
+                                    </wpfcharttk:Chart>
+                                    <wpfcharttk:Chart Style="{StaticResource NoLegend}" Grid.Row="0" Name="CycleGradeChart" Visibility="Hidden">
+                                        <wpfcharttk:LineSeries Name="CycleGradeChart_Line0"
+                                                                ItemsSource="{Binding}"
+                                                                IndependentValuePath="Key"
+                                                                DependentValuePath="Value">
+                                            <wpfcharttk:LineSeries.DependentRangeAxis>
+                                                <wpfcharttk:LinearAxis Orientation="Y" ShowGridLines="True" Name="CycleGradeChart_DependantAxis0" Minimum="0">
+                                                </wpfcharttk:LinearAxis>
+                                            </wpfcharttk:LineSeries.DependentRangeAxis>
+                                            <wpfcharttk:LineSeries.IndependentAxis>
+                                                <wpfcharttk:LinearAxis Orientation="X" Minimum="0" Title="Time (s)"/>
+                                            </wpfcharttk:LineSeries.IndependentAxis>
+                                        </wpfcharttk:LineSeries>
+                                    </wpfcharttk:Chart>
+                                    <wpfcharttk:Chart Style="{StaticResource NoLegend}" Grid.Row="0" Name="CycleAuxChart" Visibility="Hidden">
+                                        <wpfcharttk:LineSeries Name="CycleAuxChart_Line0"
+                                                                ItemsSource="{Binding}"
+                                                                IndependentValuePath="Key"
+                                                                DependentValuePath="Value">
+                                            <wpfcharttk:LineSeries.DependentRangeAxis>
+                                                <wpfcharttk:LinearAxis Orientation="Y" ShowGridLines="True" Name="CycleAuxChart_DependantAxis0" Minimum="0">
+                                                </wpfcharttk:LinearAxis>
+                                            </wpfcharttk:LineSeries.DependentRangeAxis>
+                                            <wpfcharttk:LineSeries.IndependentAxis>
+                                                <wpfcharttk:LinearAxis Orientation="X" Minimum="0" Title="Time (s)"/>
+                                            </wpfcharttk:LineSeries.IndependentAxis>
+                                        </wpfcharttk:LineSeries>
+                                        <wpfcharttk:LineSeries Name="CycleAuxChart_Line1"
+                                                                ItemsSource="{Binding}"
+                                                                IndependentValuePath="Key"
+                                                                DependentValuePath="Value"
+                                                                Style="{StaticResource SecondarySeries}">
+                                            <wpfcharttk:LineSeries.DependentRangeAxis>
+                                                <wpfcharttk:LinearAxis Orientation="Y" ShowGridLines="True" Name="CycleAuxChart_DependantAxis1" Maximum="1.13" Minimum="0" Interval="1">
+                                                </wpfcharttk:LinearAxis>
+                                            </wpfcharttk:LineSeries.DependentRangeAxis>
+                                            <!-- Don't need to define a new independent axis!-->
+                                        </wpfcharttk:LineSeries>
+                                    </wpfcharttk:Chart>
+                                </Grid>
+                                <Border Style="{StaticResource SeparatorBorder}" DataContext="{Binding DriveCycles, Converter={StaticResource DriveCycleInsightConverter}}" Grid.Column="1" Grid.Row="1">
+                                    <StackPanel>
+                                        <Label FontSize="16" >Insights</Label>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition/>
+                                                <RowDefinition/>
+                                                <RowDefinition/>
+                                                <RowDefinition/>
+                                                <RowDefinition/>
+                                                <RowDefinition/>
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*"/>
+                                                <ColumnDefinition/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Label Grid.Column="0" Grid.Row="0"
+                                                    Content="{Binding Path=DataContext.UnitSystem.Speed.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                    ContentStringFormat="Top Speed ({0})"></Label>
+                                            <Label Grid.Column="1" Grid.Row="0" Content="{Binding TopSpeed}"></Label>
+
+                                            <Label Grid.Column="0" Grid.Row="1"
+                                                    Content="{Binding Path=DataContext.UnitSystem.Speed.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                    ContentStringFormat="Average Speed ({0})"></Label>
+                                            <Label Grid.Column="1" Grid.Row="1" Content="{Binding AverageSpeed}"></Label>
+
+                                            <Label Grid.Column="0" Grid.Row="2"
+                                                    Content="{Binding Path=DataContext.UnitSystem.Speed.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                                    ContentStringFormat="Average Moving Speed ({0})"></Label>
+                                            <Label Grid.Column="1" Grid.Row="2" Content="{Binding AverageMovingSpeed}"></Label>
+
+                                            <Label Grid.Column="0" Grid.Row="3">Peak Grade (radians)</Label>
+                                            <Label Grid.Column="1" Grid.Row="3" Content="{Binding PeakGrade}"></Label>
+
+                                            <Label Grid.Column="0" Grid.Row="4">Total Time (s)</Label>
+                                            <Label Grid.Column="1" Grid.Row="4" Content="{Binding TotalTime}"></Label>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                                <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2">
+                                    <extnd:EnumRadioButton EnumBinding="{Binding ChartType}" EnumValue="Speed" x:Name="CycleRadio_Speed">Speed</extnd:EnumRadioButton>
+                                    <extnd:EnumRadioButton EnumBinding="{Binding ChartType}" EnumValue="Grade" x:Name="CycleRadio_Grade">Grade</extnd:EnumRadioButton>
+                                    <extnd:EnumRadioButton EnumBinding="{Binding ChartType}" EnumValue="AuxLoad" x:Name="CycleRadio_AuxLoad">Auxiliary Load</extnd:EnumRadioButton>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DockPanel>
+                </TabItem.Content>
+            </TabItem>
+            <TabItem DataContext="{Binding SimulationModel}" Name="SimulationTab">
+                <TabItem.Header>
+                    Simulation
+                </TabItem.Header>
+                <TabItem.Content>
+                    <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <Grid Width="260">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="2*"/>
+                                <RowDefinition Height="*" MinHeight="220"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel>
+                                <xctk:BusyIndicator Grid.Row="0" Margin="0,5,0,0" BusyContent="Please wait..." IsBusy="False" x:Name="SimBusyIndicator">
+                                    <Button VerticalAlignment="Bottom" Click="Simulate_Click" Name="Simulate" FontSize="20" Margin="4">Simulate</Button>
+                                </xctk:BusyIndicator>
+                                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding UseDistance}" Margin="5,5,5,5">Use Distance instead of Time for X-Axis
+                                </CheckBox>
+                                <StackPanel Margin="5" VerticalAlignment="Center"
+                                                Visibility="{Binding GraphNeedsUpdate, Converter={StaticResource VisibilityCollapsedConverter}}">
+                                    <Label Foreground="Red" Padding="5" ClipToBounds="False" HorizontalAlignment="Center">
+                                        <TextBlock TextWrapping="WrapWithOverflow" TextAlignment="Center">
+                                            Some changes have been made since the graphs were last generated
+                                        </TextBlock>
+                                    </Label>
+                                    <Button Click="Reload_Graphs" Content="Reload">
+                                    </Button>
+                                </StackPanel>
+                                <Label Name="SimStatusMessage"></Label>
+                                <StackPanel Name="SimRadios" Visibility="Hidden">
+                                    <Label>Parameter</Label>
+                                    <extnd:EnumRadioButton EnumBinding="{Binding ChartType}" x:Name="SimRadio_VehicleSpeed" EnumValue="VehicleSpeed">Vehicle Speed</extnd:EnumRadioButton>
+                                    <extnd:EnumRadioButton EnumBinding="{Binding ChartType}" x:Name="SimRadio_EngineSpeed" EnumValue="EngineSpeed">Engine Speed</extnd:EnumRadioButton>
+                                    <extnd:EnumRadioButton EnumBinding="{Binding ChartType}" x:Name="SimRadio_LocoPower" EnumValue="LocomotivePower">Locomotive Power</extnd:EnumRadioButton>
+                                    <extnd:EnumRadioButton EnumBinding="{Binding ChartType}" x:Name="SimRadio_FuelBurnRate" EnumValue="FuelBurnRate">Fuel Consumption Rate</extnd:EnumRadioButton>
+                                    <extnd:EnumRadioButton EnumBinding="{Binding ChartType}" x:Name="SimRadio_GHGEmissions" EnumValue="GHGEmissions">Cumulative GHG Emissions</extnd:EnumRadioButton>
+                                    <extnd:EnumRadioButton EnumBinding="{Binding ChartType}" x:Name="SimRadio_AESSState" EnumValue="AESSState">AESS On/Off State</extnd:EnumRadioButton>
+                                </StackPanel>
+                            </StackPanel>
+                            <Grid Grid.Row="1" Name="SimInsights" Visibility="Hidden">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="190"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+
+                                <Label Grid.Column="0" Grid.Row="0"
+                                        Content="{Binding Path=DataContext.UnitSystem.Mass.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                        ContentStringFormat="Total Vehicle Weight ({0})"></Label>
+                                <Label Grid.Column="1" Grid.Row="0" Content="{Binding TotalWeight}"></Label>
+
+                                <Label Grid.Column="0" Grid.Row="1"
+                                        Content="{Binding Path=DataContext.UnitSystem.Distance.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                        ContentStringFormat="Total Distance Travelled ({0})"></Label>
+                                <Label Grid.Column="1" Grid.Row="1" Content="{Binding DistanceTravelled}"></Label>
+
+                                <Label Grid.Column="0" Grid.Row="2"
+                                        Content="{Binding Path=ActualFuelLabel}"
+                                        ContentStringFormat="Prime Mover Fuel Use ({0})"></Label>
+                                <Label Grid.Column="1" Grid.Row="2" Content="{Binding ActualFuelRate}"></Label>
+
+                                <Label Grid.Column="0" Grid.Row="3"
+                                        Content="{Binding Path=DataContext.UnitSystem.Volume.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                        ContentStringFormat="Diesel Aux. Eng. Fuel Use ({0})"></Label>
+                                <Label Grid.Column="1" Grid.Row="3" Content="{Binding TotalAPUFuelUseVolume}"></Label>
+
+                                <Label Grid.Column="0" Grid.Row="4"
+                                        Content="{Binding Path=DataContext.UnitSystem.Energy.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                        ContentStringFormat="Total Energy Cons. ({0})"></Label>
+                                <Label Grid.Column="1" Grid.Row="4" Content="{Binding TotalEnergyConsumption}"></Label>
+
+                                <Label Grid.Column="0" Grid.Row="5"
+                                        Content="{Binding Path=EquivFuelRateLabel}"
+                                        ContentStringFormat="Diesel Equiv. Fuel Cons. ({0})"></Label>
+                                <Label Grid.Column="1" Grid.Row="5" Content="{Binding EquivalentFuelRate}"></Label>
+
+                                <Label Grid.Column="0" Grid.Row="6"
+                                        Content="{Binding Path=DataContext.UnitSystem.Mass.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                        ContentStringFormat="Load Moved Per {0} Fuel ({0}/{0})"></Label>
+                                <Label Grid.Column="1" Grid.Row="6" Content="{Binding LoadMovedPerKgFuel}"></Label>
+                                
+                                <Label Grid.Column="0" Grid.Row="7"
+                                        Content="{Binding Path=DataContext.UnitSystem.Mass.Label, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                        ContentStringFormat="Total GHG Emissions ({0} CO2 eq.)"></Label>
+                                <Label Grid.Column="1" Grid.Row="7" Content="{Binding GHGEmissions}"></Label>
+                            </Grid>
+                        </Grid>
+                        <Border DockPanel.Dock="Right" Style="{StaticResource SeparatorBorder}">
+                            <Grid Name="SimChartContainer" Visibility="Visible">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition Height="auto"/>
+                                </Grid.RowDefinitions>
+                                <Image Grid.Row="0" Name="SimChartImage"></Image>
+                                <!-- This must hidden in order to properly render to an image-->
+                                <wpfcharttk:Chart Style="{StaticResource NoLegend}" Grid.Row="0" Name="SimVehicleSpeedChart" Visibility="Hidden">
+                                    <wpfcharttk:LineSeries Name="SimVehicleSpeedChart_Line0"
+                                                            ItemsSource="{Binding}"
+                                                            IndependentValuePath="Key"
+                                                            DependentValuePath="Value">
+                                        <wpfcharttk:LineSeries.DependentRangeAxis>
+                                            <wpfcharttk:LinearAxis Orientation="Y" ShowGridLines="True" Name="SimVehicleSpeedChart_DriveCycleSpeed"/>
+                                        </wpfcharttk:LineSeries.DependentRangeAxis>
+                                        <wpfcharttk:LineSeries.IndependentAxis>
+                                            <wpfcharttk:LinearAxis Orientation="X" Minimum="0" Name="SimVehicleSpeedChart_IndependantAxis" Title="Time (s)"/>
+                                        </wpfcharttk:LineSeries.IndependentAxis>
+                                    </wpfcharttk:LineSeries>
+
+                                    <wpfcharttk:LineSeries Name="SimVehicleSpeedChart_Line1"
+                                                            ItemsSource="{Binding}"
+                                                            IndependentValuePath="Key"
+                                                            DependentValuePath="Value"
+                                                            Style="{StaticResource SecondarySeries}">
+                                    </wpfcharttk:LineSeries>
+                                </wpfcharttk:Chart>
+
+                                <wpfcharttk:Chart Style="{StaticResource NoLegend}" Grid.Row="0" Name="SimEngineSpeedChart" Visibility="Hidden">
+                                    <wpfcharttk:LineSeries Name="SimEngineSpeedChart_Line0"
+                                                            ItemsSource="{Binding}"
+                                                            IndependentValuePath="Key"
+                                                            DependentValuePath="Value">
+                                        <wpfcharttk:LineSeries.DependentRangeAxis>
+                                            <wpfcharttk:LinearAxis Orientation="Y" ShowGridLines="True" Name="SimEngineSpeedChart_DependantAxis0"/>
+                                        </wpfcharttk:LineSeries.DependentRangeAxis>
+                                        <wpfcharttk:LineSeries.IndependentAxis>
+                                            <wpfcharttk:LinearAxis Orientation="X" Minimum="0" Name="SimEngineSpeedChart_IndependantAxis" Title="Time (s)"/>
+                                        </wpfcharttk:LineSeries.IndependentAxis>
+                                    </wpfcharttk:LineSeries>
+                                </wpfcharttk:Chart>
+
+                                <wpfcharttk:Chart Style="{StaticResource NoLegend}" Grid.Row="0" Name="SimLocoPowerChart" Visibility="Hidden">
+                                    <wpfcharttk:LineSeries Name="SimLocoPowerChart_Line0"
+                                                            ItemsSource="{Binding}"
+                                                            IndependentValuePath="Key"
+                                                            DependentValuePath="Value">
+                                        <wpfcharttk:LineSeries.DependentRangeAxis>
+                                            <wpfcharttk:LinearAxis Orientation="Y" ShowGridLines="True" Name="SimLocoPowerChart_PrimeMover"/>
+                                        </wpfcharttk:LineSeries.DependentRangeAxis>
+                                        <wpfcharttk:LineSeries.IndependentAxis>
+                                            <wpfcharttk:LinearAxis Orientation="X" Minimum="0" Name="SimLocoPowerChart_IndependantAxis" Title="Time (s)"/>
+                                        </wpfcharttk:LineSeries.IndependentAxis>
+                                    </wpfcharttk:LineSeries>
+
+                                    <wpfcharttk:LineSeries Name="SimLocoPowerChart_Line1"
+                                                            ItemsSource="{Binding}"
+                                                            IndependentValuePath="Key"
+                                                            DependentValuePath="Value"
+                                                            Visibility="Hidden"
+                                                           Style="{StaticResource SecondarySeries}">
+                                    </wpfcharttk:LineSeries>
+
+                                    <wpfcharttk:LineSeries Name="SimLocoPowerChart_Line2"
+                                                            ItemsSource="{Binding}"
+                                                            IndependentValuePath="Key"
+                                                            DependentValuePath="Value"
+                                                            Visibility="Hidden" Style="{StaticResource TertiarySeries}">
+                                    </wpfcharttk:LineSeries>
+
+                                    <wpfcharttk:LineSeries Name="SimLocoPowerChart_Line3"
+                                                            ItemsSource="{Binding}"
+                                                            IndependentValuePath="Key"
+                                                            DependentValuePath="Value"
+                                                            Visibility="Hidden" Style="{StaticResource FourthSeries}">
+                                        </wpfcharttk:LineSeries>
+                                </wpfcharttk:Chart>
+
+                                <wpfcharttk:Chart Style="{StaticResource NoLegend}" Grid.Row="0" Name="SimFuelBurnRateChart" Visibility="Hidden">
+                                    <wpfcharttk:LineSeries Name="SimFuelBurnRateChart_Line0"
+                                                            ItemsSource="{Binding}"
+                                                            IndependentValuePath="Key"
+                                                            DependentValuePath="Value">
+                                        <wpfcharttk:LineSeries.DependentRangeAxis>
+                                            <wpfcharttk:LinearAxis Orientation="Y" ShowGridLines="True" Name="SimFuelBurnRateChart_PrimeMoverConsumption"/>
+                                        </wpfcharttk:LineSeries.DependentRangeAxis>
+                                        <wpfcharttk:LineSeries.IndependentAxis>
+                                            <wpfcharttk:LinearAxis Orientation="X" Minimum="0" Name="SimFuelBurnRateChart_IndependantAxis" Title="Time (s)"/>
+                                        </wpfcharttk:LineSeries.IndependentAxis>
+                                    </wpfcharttk:LineSeries>
+
+                                    <wpfcharttk:LineSeries Name="SimFuelBurnRateChart_Line1"
+                                                            ItemsSource="{Binding}"
+                                                            IndependentValuePath="Key"
+                                                            DependentValuePath="Value"
+                                                            Style="{StaticResource SecondarySeries}">
+                                    </wpfcharttk:LineSeries>
+                                </wpfcharttk:Chart>
+
+                                <wpfcharttk:Chart Style="{StaticResource NoLegend}" Grid.Row="0" Name="SimGHGEmissionsChart" Visibility="Hidden">
+                                    <wpfcharttk:LineSeries Name="SimGHGEmissionsChart_Line0"
+                                                            ItemsSource="{Binding}"
+                                                            IndependentValuePath="Key"
+                                                            DependentValuePath="Value">
+                                        <wpfcharttk:LineSeries.DependentRangeAxis>
+                                            <wpfcharttk:LinearAxis Orientation="Y" ShowGridLines="True" Name="SimGHGEmissionsChart_GHGEmissions"/>
+                                        </wpfcharttk:LineSeries.DependentRangeAxis>
+                                        <wpfcharttk:LineSeries.IndependentAxis>
+                                            <wpfcharttk:LinearAxis Orientation="X" Minimum="0" Name="SimGHGEmissionsChart_IndependantAxis" Title="Time (s)"/>
+                                        </wpfcharttk:LineSeries.IndependentAxis>
+                                    </wpfcharttk:LineSeries>
+                                </wpfcharttk:Chart>
+
+                                <wpfcharttk:Chart Style="{StaticResource NoLegend}" Grid.Row="0" Name="SimAESSChart" Visibility="Hidden">
+                                    <wpfcharttk:LineSeries Name="SimAESSChart_Line0"
+                                                            ItemsSource="{Binding}"
+                                                            IndependentValuePath="Key"
+                                                            DependentValuePath="Value">
+                                        <wpfcharttk:LineSeries.DependentRangeAxis>
+                                            <wpfcharttk:LinearAxis Orientation="Y" ShowGridLines="True" Name="SimAESSChart_DependantAxis0"/>
+                                        </wpfcharttk:LineSeries.DependentRangeAxis>
+                                        <wpfcharttk:LineSeries.IndependentAxis>
+                                            <wpfcharttk:LinearAxis Orientation="X" Minimum="0" Name="SimAESSChart_IndependantAxis" Title="Time (s)"/>
+                                        </wpfcharttk:LineSeries.IndependentAxis>
+                                    </wpfcharttk:LineSeries>
+                                </wpfcharttk:Chart>
+                                <Button Visibility="Hidden" HorizontalAlignment="Right" Padding="2" Margin="5" Name="SaveSimResults" Grid.Row="1" Click="SaveSimResults_Click">Save Simulation Results</Button>
+                            </Grid>
+                        </Border>
+                    </DockPanel>
+                </TabItem.Content>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>
