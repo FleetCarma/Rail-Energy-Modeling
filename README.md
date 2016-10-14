@@ -4,4 +4,4 @@ The Rail Energy Modeling Software is a Windows program that enables users to inv
 
 Powertrain simulation, done to assist with vehicle design, is common in the automotive and trucking industry and made accessible through reasonably priced software tools (such as ADVISOR, PSAT, AUTONOMIE, AVL Cruise). The Rail Energy Modeling Software is a attempt to bring a similar toolset to the rail industry.
 
-This software builds using Visual Studio 2010
+This software builds using Visual Studio 2010 or a built version is included in this repo for downloading [Rail-Energy-Modeling.zip](https://github.com/FleetCarma/Rail-Energy-Modeling/blob/master/Rail-Energy-Modeling.zip)
